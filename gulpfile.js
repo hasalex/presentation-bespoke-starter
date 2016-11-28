@@ -18,7 +18,8 @@ var pkg = require('./package.json'),
   stylus = require('gulp-stylus'),
   through = require('through'),
   uglify = require('gulp-uglify'),
-  isDist = process.argv.indexOf('deploy') >= 0;
+  isDist = process.argv.indexOf('deploy') >= 0,
+  concat = require('gulp-concat');
 
 gulp.task('js', ['clean:js'], function() {
   // see https://wehavefaces.net/gulp-browserify-the-gulp-y-way-bb359b3f9623
@@ -43,8 +44,12 @@ gulp.task('html', ['clean:html'], function() {
 });
 
 gulp.task('css', ['clean:css'], function() {
-  return gulp.src('src/styles/main.styl')
+  return gulp.src([
+        'src/styles/main.styl', 
+        (process.argv.indexOf('-n') >= 0 ? 'src/styles/print-notes.styl' : 'src/styles/print.styl') 
+    ])
     .pipe(isDist ? through() : plumber())
+    .pipe(concat('result.styl'))
     .pipe(stylus({ 'include css': true, paths: ['./node_modules'] }))
     .pipe(autoprefixer({ browsers: ['last 2 versions'], cascade: false }))
     .pipe(isDist ? csso() : through())
